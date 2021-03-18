@@ -1,3 +1,14 @@
-test_that("multiplication works", {
-  expect_equal(2 * 2, 4)
+test_that("Blblm Tests", {
+  library(blblm)
+  library(purrr)
+  library(furrr)
+  fit <- blblm(mpg ~ wt * hp, data = mtcars, m = 3, B = 100, parallel = TRUE)
+  fit1 <- blblm(mpg ~ wt * hp, data = mtcars, m = 3, B = 100, parallel = FALSE)
+  expect_equal(length(fit), length(fit1))
+  expect_equal(length(coef(fit)), 4)
+  expect_equal(length(confint(fit, c("wt", "hp"))), 4)
+  expect_equal(length(sigma(fit)), 1)
+  expect_equal(length(sigma(fit, confidence = TRUE)), 3)
+  expect_equal(length(predict(fit, data.frame(wt = c(2.5, 3), hp = c(150, 170)))), 2)
+  expect_equal(length(predict(fit, data.frame(wt = c(2.5, 3), hp = c(150, 170)), confidence = TRUE)), 6)
 })

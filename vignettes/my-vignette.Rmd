@@ -1,0 +1,63 @@
+---
+title: "my-vignette"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{my-vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Blblm function
+The blblm function first checks if the user would like more than one CPU, or, in other words, if the user would like to use parallelization. The data is then split into the m equal parts which in this case is 3, which then applies a function to each element in the data which is used to compute the estimates such as regression estimates, coefficients, sigma, confidence intervals, and prediction intervals.
+```{r setup, message = FALSE}
+library(blblm)
+library(furrr)
+library(purrr)
+library(magrittr)
+fit = blblm(mpg ~ wt * hp, data = mtcars, m = 3, B = 100, parallel = TRUE)
+```
+
+## Print.blblm Function
+This function outputs the blblm model equation. When calling the variable fit as shown below, it returns the blblm model we are using, mpg ~ wt * hp.
+
+```{r, message = FALSE}
+fit
+```
+
+## Sigma.blblm Function
+This function computes the sigma value which also outputs its confidence interval if confidence is set to TRUE but if not, the function will only return the sigma value.
+
+```{r, message = FALSE}
+sigma(fit)
+sigma(fit, confidence = TRUE)
+```
+
+## Coef.blblm Function
+This calculates the coefficients of the blblm model which finds the intercept, the wt coefficient, the hp coefficient, and the wt:hp coefficient.
+
+```{r, message = FALSE}
+coef(fit)
+```
+
+## Confint.blblm Function
+This function calculates the confidence interval for the blblm model.
+
+```{r, message = FALSE}
+confint(fit, c("wt", "hp"))
+```
+
+## Predict.blblm Function
+This function computes the prediction interval for the mean of the blblm model only if the confidence is set to TRUE and will return only the mean of the model, otherwise.
+
+```{r, message = FALSE}
+predict(fit, data.frame(wt = c(2.5, 3), hp = c(150, 170)))
+predict(fit, data.frame(wt = c(2.5, 3), hp = c(150, 170)), confidence = TRUE)
+```
+

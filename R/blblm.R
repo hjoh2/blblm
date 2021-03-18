@@ -1,5 +1,6 @@
 #' @import purrr
 #' @import stats
+#' @import furrr
 #' @importFrom magrittr %>%
 #' @details
 #' Linear Regression with Little Bag of Bootstraps
@@ -12,16 +13,25 @@ utils::globalVariables(c("."))
 
 
 #' @export
-blblm <- function(formula, data, m = 10, B = 5000) {
-  data_list <- split_data(data, m)
-  estimates <- map(
-    data_list,
-    ~ lm_each_subsample(formula = formula, data = ., n = nrow(data), B = B))
-  res <- list(estimates = estimates, formula = formula)
+blblm <- function(formula, data, m = 10, B = 5000, parallel = TRUE) {
+  if (parallel){
+    data_list <- split_data(data, m)
+    estimates <- map(
+      data_list,
+      ~ lm_each_subsample(formula = formula, data = ., n = nrow(data), B = B))
+    res <- list(estimates = estimates, formula = formula)
+  }
+  else{
+    plan(multiprocess, workers = 4)
+    data_list <- split_data(data, m)
+    estimates <- future_map(
+      data_list,
+      ~ lm_each_subsample(formula = formula, data = ., n = nrow(data), B = B))
+    res <- list(estimates = estimates, formula = formula)
+  }
   class(res) <- "blblm"
   invisible(res)
 }
-
 
 #' split data into m parts of approximated equal sizes
 split_data <- function(data, m) {
@@ -48,7 +58,6 @@ lm1 <- function(X, y, n) {
   fit <- lm.wfit(X, y, freqs)
   list(coef = blbcoef(fit), sigma = blbsigma(fit))
 }
-
 
 #' compute the coefficients from fit
 blbcoef <- function(fit) {
@@ -146,3 +155,4 @@ map_cbind <- function(.x, .f, ...) {
 map_rbind <- function(.x, .f, ...) {
   map(.x, .f, ...) %>% reduce(rbind)
 }
+
